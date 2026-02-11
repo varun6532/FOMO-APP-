@@ -213,7 +213,7 @@ export default function App() {
                 <TrendingUp className="w-6 h-6 text-black" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight">CANTEEN STOCK MARKET</h1>
+                <h1 className="text-xl font-bold tracking-tight">JIMS CANTEEN STOCK MARKET</h1>
                 <p className="text-xs text-[#666677]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                   LIVE TRADING FLOOR
                 </p>
