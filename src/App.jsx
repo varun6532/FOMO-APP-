@@ -1,4 +1,4 @@
-import { Eye, TrendingUp, AlertTriangle, Users, Activity, Lock, Check } from 'lucide-react';
+import { Eye, TrendingUp, AlertTriangle, Users, Activity } from 'lucide-react';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { useState, useEffect } from 'react';
 
@@ -167,123 +167,122 @@ export default function App() {
       price: 42, 
       basePrice: 25, 
       flash: false,
-      image: 'https://images.unsplash.com/photo-1607330289024-ade12d8a4e5d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuYWFuJTIwaW5kaWFuJTIwYnJlYWQlMjBidXR0ZXJ8ZW58MXx8fHwxNzcwNzk4MjA2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      image: 'https://images.unsplash.com/photo-1667203808951-4b558e12c4a8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXR0ZXIlMjBuYWFuJTIwYnJlYWQlMjBpbmRpYW58ZW58MXx8fHwxNzcwNzk4MjA2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       stock: 16,
-      demand: 7.3,
+      demand: 6.3,
       badge: 'FRESH',
-      description: 'Soft tandoor-baked bread with butter'
+      description: 'Soft tandoor bread with melted butter'
+    },
+    { 
+      id: 12, 
+      name: 'FRENCH FRIES', 
+      sku: 'FRIE-2024', 
+      lot: 'M-298',
+      price: 52, 
+      basePrice: 30, 
+      flash: false,
+      image: 'https://images.unsplash.com/photo-1734774797087-b6435057a15e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVuY2glMjBmcmllcyUyMGdvbGRlbiUyMGNyaXNweXxlbnwxfHx8fDE3NzA3NTA2MTV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      stock: 22,
+      demand: 8.5,
+      badge: 'CRISPY',
+      description: 'Golden crispy potato fries with salt'
+    },
+    { 
+      id: 13, 
+      name: 'VEG BURGER', 
+      sku: 'BURG-2024', 
+      lot: 'N-245',
+      price: 88, 
+      basePrice: 50, 
+      flash: false,
+      image: 'https://images.unsplash.com/photo-1633070962060-6fae2bc680fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXJnZXIlMjB2ZWdldGFibGUlMjBpbmRpYW58ZW58MXx8fHwxNzcwNzk4MjEwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+      stock: 8,
+      demand: 9.2,
+      badge: 'LOADED',
+      description: 'Juicy veggie patty with cheese and sauces'
     }
   ]);
 
   const [selectedProductId, setSelectedProductId] = useState(0);
+
+  // State to track locked prices for each product
   const [lockedPrices, setLockedPrices] = useState({});
-  const [showLockNotification, setShowLockNotification] = useState(false);
-  const [lastLockedProduct, setLastLockedProduct] = useState(null);
 
-  const selectedProduct = products.find(p => p.id === selectedProductId);
+  // Get the currently selected product
+  const selectedProduct = products.find(p => p.id === selectedProductId) || products[0];
 
-  // Simulate real-time price fluctuations
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProducts(prevProducts => 
-        prevProducts.map(product => {
-          const fluctuation = (Math.random() - 0.48) * 10;
-          const newPrice = Math.max(
-            product.basePrice,
-            Math.round(product.price + fluctuation)
-          );
-          
-          const flash = Math.abs(newPrice - product.price) > 5;
-          
-          return {
-            ...product,
-            price: newPrice,
-            flash: flash
-          };
-        })
-      );
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Clear flash effect
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setProducts(prevProducts =>
-        prevProducts.map(product => ({
-          ...product,
-          flash: false
-        }))
-      );
-    }, 500);
-
-    return () => clearTimeout(timeout);
-  }, [products]);
-
-  const handleLockPrice = () => {
-    setLockedPrices(prev => ({
-      ...prev,
-      [selectedProduct.id]: {
-        price: selectedProduct.price,
-        timestamp: new Date().toISOString(),
-        productName: selectedProduct.name
-      }
-    }));
-    setLastLockedProduct(selectedProduct);
-    setShowLockNotification(true);
-    
-    setTimeout(() => {
-      setShowLockNotification(false);
-    }, 3000);
+  // Function to lock the current price for a product
+  const lockPrice = (productId) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      setLockedPrices(prev => ({
+        ...prev,
+        [productId]: {
+          price: product.price,
+          timestamp: new Date().toISOString()
+        }
+      }));
+    }
   };
 
-  const isLocked = lockedPrices[selectedProduct?.id];
+  // Simulate price changes for market ticker products
+  useEffect(() => {
+    const intervals = products.map((product) => {
+      return setInterval(() => {
+        setProducts(prevProducts => 
+          prevProducts.map(p => {
+            if (p.id === product.id) {
+              const priceChange = Math.random() > 0.5 ? 1 : -1;
+              const minPrice = Math.floor(p.basePrice * 0.8);
+              const maxPrice = Math.floor(p.basePrice * 2.5);
+              const newPrice = Math.max(minPrice, Math.min(maxPrice, p.price + priceChange));
+              
+              // Trigger flash off after short delay
+              setTimeout(() => {
+                setProducts(prev => 
+                  prev.map(item => item.id === product.id ? { ...item, flash: false } : item)
+                );
+              }, 300);
+              
+              return { ...p, price: newPrice, flash: true };
+            }
+            return p;
+          })
+        );
+      }, Math.random() * 4000 + 3000); // Random between 3-7 seconds
+    });
+
+    return () => intervals.forEach(interval => clearInterval(interval));
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#0f0f14] text-white">
-      {/* Lock Notification */}
-      {showLockNotification && (
-        <div className="fixed top-4 right-4 z-50 bg-[#00ff88] text-black px-6 py-4 rounded-lg shadow-lg animate-slide-in flex items-center space-x-3">
-          <Check className="w-6 h-6" />
-          <div>
-            <div className="font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              PRICE LOCKED!
-            </div>
-            <div className="text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {lastLockedProduct?.name} at ₹{lockedPrices[lastLockedProduct?.id]?.price}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <header className="border-b border-[#1f1f28] bg-[#0f0f14] sticky top-0 z-40 backdrop-blur-lg bg-opacity-90">
+    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Header */}
+      <header className="border-b border-[#1f1f28] bg-[#0f0f14]">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-br from-[#ff2b47] to-[#ff6b00] p-2 rounded-lg">
-                <TrendingUp className="w-6 h-6" />
+              <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6e] rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-black" />
               </div>
               <div>
-                <h1 className="text-xl font-black tracking-tighter" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  CANTEEN STOCK MARKET
-                </h1>
+                <h1 className="text-xl font-bold tracking-tight">CANTEEN STOCK MARKET</h1>
                 <p className="text-xs text-[#666677]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  Real-time dynamic pricing
+                  LIVE TRADING FLOOR
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="hidden sm:flex items-center space-x-2 bg-[#1a1a24] px-3 py-2 rounded-lg border border-[#2a2a38]">
+              <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-[#1a1a24] rounded-lg border border-[#2a2a38]">
                 <Activity className="w-4 h-4 text-[#00ff88]" />
-                <span className="text-xs text-[#888899]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  LIVE
+                <span className="text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  MARKET OPEN
                 </span>
               </div>
-              <div className="flex items-center space-x-2 bg-[#1a1a24] px-3 py-2 rounded-lg border border-[#2a2a38]">
-                <Eye className="w-4 h-4 text-[#ff6b00]" />
-                <span className="text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {Math.floor(Math.random() * 50) + 120}
+              <div className="flex items-center space-x-2 px-3 py-1.5 bg-[#1a1a24] rounded-lg border border-[#2a2a38]">
+                <Users className="w-4 h-4 text-[#666677]" />
+                <span className="text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  247 ONLINE
                 </span>
               </div>
             </div>
@@ -291,27 +290,47 @@ export default function App() {
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <div className="flex items-center space-x-2 text-sm text-[#666677] mb-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            <AlertTriangle className="w-4 h-4 text-[#ff6b00]" />
-            <span>PRICES UPDATE EVERY 3 SECONDS</span>
-          </div>
-          <h2 className="text-3xl font-black mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            FEATURED PRODUCT
-          </h2>
-          <p className="text-[#888899] text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            {selectedProduct.description}
-          </p>
-        </div>
-
         {/* Hero Product Card */}
-        <div className="bg-[#151520] border border-[#2a2a38] rounded-2xl overflow-hidden shadow-2xl mb-8">
-          <div className="p-8">
-            <div className="grid lg:grid-cols-2 gap-8">
+        <div className="relative bg-gradient-to-br from-[#151520] to-[#0f0f14] border-2 border-[#ff2b47] rounded-2xl overflow-hidden shadow-2xl">
+          {/* Flash Effect */}
+          <div 
+            className={`absolute inset-0 bg-[#ff2b47] pointer-events-none transition-opacity duration-300 ${
+              selectedProduct.flash ? 'opacity-20' : 'opacity-0'
+            }`}
+          ></div>
+          
+          {/* Live Viewers Badge */}
+          <div className="absolute top-4 right-4 z-20">
+            <div className="flex items-center space-x-2 px-4 py-2 bg-[#ff2b47] rounded-full shadow-lg animate-pulse">
+              <Eye className="w-5 h-5 text-white" />
+              <span className="text-sm font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                42 Students Watching
+              </span>
+            </div>
+          </div>
+
+          {/* Warning Labels */}
+          <div className="absolute top-4 left-4 z-20 flex space-x-2">
+            <div className="px-3 py-1.5 bg-[#ff2b47] rounded-lg animate-pulse">
+              <span className="text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                DEMAND HIGH!
+              </span>
+            </div>
+            <div className="px-3 py-1.5 bg-[#ff6b00] rounded-lg">
+              <span className="text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                SURGE PRICING ACTIVE
+              </span>
+            </div>
+          </div>
+
+          <div className="relative p-8 lg:p-12">
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               {/* Product Image */}
               <div className="relative">
-                <div className="relative rounded-xl overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#ff2b47] to-[#ff6b00] opacity-20 blur-3xl"></div>
+                <div className="relative rounded-xl overflow-hidden border-4 border-[#2a2a38] shadow-2xl">
                   <ImageWithFallback
                     src={selectedProduct.image}
                     alt={selectedProduct.name}
@@ -339,50 +358,32 @@ export default function App() {
                 <div className="space-y-2">
                   <div className="flex items-baseline space-x-2">
                     <span className="text-[#666677] text-lg" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                      {isLocked ? 'LOCKED PRICE' : 'CURRENT PRICE'}
+                      CURRENT PRICE
                     </span>
-                    {!isLocked && (
-                      <div className="flex items-center space-x-1 text-[#ff2b47]">
-                        <TrendingUp className="w-5 h-5" />
-                        <span className="text-sm font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                          +{Math.round(((selectedProduct.price - selectedProduct.basePrice) / selectedProduct.basePrice) * 100)}%
-                        </span>
-                      </div>
-                    )}
-                    {isLocked && (
-                      <div className="flex items-center space-x-1 text-[#00ff88]">
-                        <Lock className="w-5 h-5" />
-                        <span className="text-sm font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                          SECURED
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-1 text-[#ff2b47]">
+                      <TrendingUp className="w-5 h-5" />
+                      <span className="text-sm font-bold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                        +{Math.round(((selectedProduct.price - selectedProduct.basePrice) / selectedProduct.basePrice) * 100)}%
+                      </span>
+                    </div>
                   </div>
                   <div 
-                    className={`font-black tracking-tighter transition-all duration-300 ${
-                      selectedProduct.flash && !isLocked ? 'scale-105' : 'scale-100'
-                    } ${isLocked ? 'text-[#00ff88]' : 'text-[#ff2b47]'}`}
+                    className={`text-[#ff2b47] font-black tracking-tighter transition-all duration-300 ${
+                      selectedProduct.flash ? 'scale-105' : 'scale-100'
+                    }`}
                     style={{ 
                       fontFamily: "'JetBrains Mono', monospace",
                       fontSize: 'clamp(4rem, 12vw, 8rem)',
                       lineHeight: '1',
-                      textShadow: isLocked 
-                        ? '0 0 50px rgba(0, 255, 136, 0.8)' 
-                        : selectedProduct.flash 
-                          ? '0 0 50px rgba(255, 43, 71, 0.8)' 
-                          : '0 0 30px rgba(255, 43, 71, 0.5)'
+                      textShadow: selectedProduct.flash ? '0 0 50px rgba(255, 43, 71, 0.8)' : '0 0 30px rgba(255, 43, 71, 0.5)'
                     }}
                   >
-                    ₹{isLocked ? lockedPrices[selectedProduct.id].price : selectedProduct.price}
+                    ₹{selectedProduct.price}
                   </div>
                   <div className="flex items-center space-x-3 text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     <span className="text-[#666677]">BASE PRICE:</span>
                     <span className="line-through text-[#444455]">₹{selectedProduct.basePrice}</span>
-                    {isLocked ? (
-                      <span className="text-[#00ff88] font-bold">🔒 LOCKED</span>
-                    ) : (
-                      <span className="text-[#ff2b47] font-bold">↑ ₹{selectedProduct.price - selectedProduct.basePrice}</span>
-                    )}
+                    <span className="text-[#ff2b47] font-bold">↑ ₹{selectedProduct.price - selectedProduct.basePrice}</span>
                   </div>
                 </div>
 
@@ -413,32 +414,22 @@ export default function App() {
                 </div>
 
                 <button 
-                  onClick={handleLockPrice}
-                  disabled={isLocked}
-                  className={`w-full font-black py-6 rounded-xl transition-all duration-200 transform shadow-lg ${
-                    isLocked 
-                      ? 'bg-[#1a1a24] border-2 border-[#00ff88] text-[#00ff88] cursor-not-allowed'
-                      : 'bg-[#00ff88] hover:bg-[#00cc6e] text-black hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(0,255,136,0.5)]'
+                  onClick={() => lockPrice(selectedProduct.id)}
+                  disabled={lockedPrices[selectedProduct.id]}
+                  className={`w-full font-black py-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-lg ${
+                    lockedPrices[selectedProduct.id]
+                      ? 'bg-[#666677] cursor-not-allowed opacity-75'
+                      : 'bg-[#00ff88] hover:bg-[#00cc6e] hover:shadow-[0_0_30px_rgba(0,255,136,0.5)]'
                   }`}
                 >
-                  <span className="text-2xl tracking-wide flex items-center justify-center space-x-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {isLocked ? (
-                      <>
-                        <Lock className="w-6 h-6" />
-                        <span>PRICE LOCKED</span>
-                      </>
-                    ) : (
-                      <span>LOCK PRICE NOW</span>
-                    )}
+                  <span className="text-2xl tracking-wide" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    {lockedPrices[selectedProduct.id] ? `LOCKED AT ₹${lockedPrices[selectedProduct.id].price}` : 'LOCK PRICE NOW'}
                   </span>
                 </button>
 
                 <div className="bg-[#1a1a24] border border-[#2a2a38] rounded-lg p-3">
                   <p className="text-xs text-[#888899]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {isLocked 
-                      ? `✅ PRICE SECURED: Your price is locked at ₹${lockedPrices[selectedProduct.id].price}. Complete your order to finalize.`
-                      : '⚠️ PRICE VOLATILITY: Prices may change based on real-time demand. Lock your order to secure current pricing.'
-                    }
+                    ⚠️ PRICE VOLATILITY: Prices may change based on real-time demand. Lock your order to secure current pricing.
                   </p>
                 </div>
               </div>
@@ -456,7 +447,6 @@ export default function App() {
               const percentChange = Math.round(((product.price - product.basePrice) / product.basePrice) * 100);
               const isPositive = percentChange >= 0;
               const isHighSurge = percentChange >= 70;
-              const isProductLocked = lockedPrices[product.id];
               
               return (
                 <button
@@ -464,7 +454,7 @@ export default function App() {
                   onClick={() => setSelectedProductId(product.id)}
                   className={`w-full flex items-center justify-between py-3 px-2 transition-all duration-300 hover:bg-[#1a1a24] rounded-lg cursor-pointer ${
                     index < filteredArray.length - 1 ? 'border-b border-[#2a2a38]' : ''
-                  } ${product.flash ? 'bg-[#ff2b47]/10' : ''} ${isProductLocked ? 'bg-[#00ff88]/5' : ''}`}
+                  } ${product.flash ? 'bg-[#ff2b47]/10' : ''}`}
                 >
                   <div className="flex items-center space-x-3">
                     <span className="text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
@@ -473,33 +463,28 @@ export default function App() {
                     <span className="text-xs text-[#666677]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                       SKU: {product.sku}
                     </span>
-                    {isProductLocked && (
-                      <Lock className="w-3 h-3 text-[#00ff88]" />
-                    )}
                   </div>
                   <div className="flex items-center space-x-4">
                     <span 
                       className={`text-sm font-bold transition-all duration-300 ${
-                        product.flash && !isProductLocked ? 'scale-110' : 'scale-100'
-                      } ${isProductLocked ? 'text-[#00ff88]' : ''}`}
+                        product.flash ? 'scale-110' : 'scale-100'
+                      }`}
                       style={{ 
                         fontFamily: "'JetBrains Mono', monospace",
-                        textShadow: product.flash && !isProductLocked ? '0 0 10px rgba(255, 43, 71, 0.6)' : 'none'
+                        textShadow: product.flash ? '0 0 10px rgba(255, 43, 71, 0.6)' : 'none'
                       }}
                     >
-                      ₹{isProductLocked ? lockedPrices[product.id].price : product.price}
+                      ₹{product.price}
                     </span>
-                    {!isProductLocked && (
-                      <span 
-                        className={`text-xs flex items-center space-x-1 ${
-                          isHighSurge ? 'text-[#ff2b47]' : 'text-[#00ff88]'
-                        }`}
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                      >
-                        <TrendingUp className="w-3 h-3" />
-                        <span>{isPositive ? '+' : ''}{percentChange}%</span>
-                      </span>
-                    )}
+                    <span 
+                      className={`text-xs flex items-center space-x-1 ${
+                        isHighSurge ? 'text-[#ff2b47]' : 'text-[#00ff88]'
+                      }`}
+                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      <TrendingUp className="w-3 h-3" />
+                      <span>{isPositive ? '+' : ''}{percentChange}%</span>
+                    </span>
                   </div>
                 </button>
               );
